@@ -2,7 +2,7 @@ This is a attempt to make a more modern and efficient design of elevator system 
 
 ### How does this work?
 
-The idea is based on **Actor model**. There are **Elevator**Actors and a **ElevatorController**Actor. The messages passed from Elevators to the centralized **ElevatorController** (`MainVerticle`) using VertX's event bus (just for convenient, you can just use Rx's PublishBehavior or built-in Kotlin's Coroutine features like `channel` to implement it). 
+The idea is based on **Actor model**. There are **Elevator**Actors and a **ElevatorController**Actor. The messages are passed from Elevators to the centralized **ElevatorController** (`MainVerticle`) by using VertX's event bus (just for convenience, you can just use Rx's PublishBehavior or built-in Kotlin's Coroutine features like `channel` to implement it). 
 
 ##### Elevator
 * `id` self-explanatory
@@ -10,21 +10,21 @@ The idea is based on **Actor model**. There are **Elevator**Actors and a **Eleva
 * `pickUpTime` time to pickup
 * `vertx` hold the vertx instance for event bus and some other utilities
 
-Each elevator accepts following command from `MainVerticle`: `moveUp`, `moveDown`, and `pickUp`. There is a Timer that simulate the process. The `isMoving` variable is atomic, helping to check the current state of a elevator. It will be `true` if the elevator is picking up something or moving between 2 floors.
+Each elevator accepts the following commands from `MainVerticle`: `moveUp`, `moveDown`, and `pickUp`. There is a timer that simulates the process. The `isMoving` variable is atomic, helping to check the current state of an elevator. It will be `true` if the elevator is picking up something or moving between 2 floors.
 
-When a elevator reached a floor, it notifies its current state to the controller.
+When an elevator reached a floor, it notifies its current state to the controller.
 
-**Tl;dr:** Elevators basically do not anything. It just follow the order dispatched from `MainVerticle` and updates its state.
+**Tl;dr:** Elevators basically do not anything. It just follows the order dispatched from `MainVerticle` and updates its state.
 
 ##### MainVerticle
 
 This holds all the logic of the system, including `outsideRequests` (all requests from outside of the elevator), `insideRequests` (similarly), `elevatorStatuses` (current states of elevators), `elevators` (references to each elevator), and `requestQueue` (for fairness purpose - **TODO:** not optimized yet). 
 
-All those data should be thread-safe. For the simplicity, I use built-in concurrent data structures with naive filter. However, in real production, an in-memory should be used (it is simpler to code actually).
+All those data should be thread-safe. For the simplicity, I use built-in concurrent data structures with naive filters. However, in real production, an in-memory should be used (it is simpler to code actually).
 
 ###### It is **event-based**
 
-* When it received an outside request: if it is moving up, it will try to reach the highest floor, and the same for moving down. The cost to select the elevator is calculated as `abs(toFloor - request.atFloor)` where `toFloor` is where the elevator is heading and `request.atFloor` is where the request comes from. In case, we cannot find an elevator to process a request, we add it to `requestQueue` 
+* When it received an outside request: if it is moving up, it will try to reach the highest floor, and the same goes for moving down. The cost to select the elevator is calculated as `abs(toFloor - request.atFloor)` where `toFloor` is where the elevator is heading and `request.atFloor` is where the request comes from. In case, we cannot find an elevator to process a request, we add it to `requestQueue` 
 * When it received an inside request: similar to outside request but with specific elevator ID, so it is a lot simpler.
 * When elevators' states changed
     * If should pick up: `pickup`
@@ -40,13 +40,13 @@ java -jar build/libs/*.jar
 ```
 or
 ```
-Open import with Intellij Idea and run the main function
+Open import with IntelliJ Idea and run the main function
 ```
 
-The server should start and we can use this [dashboard](https://elevator-dashboard.netlify.com/#/) to try some of the simulation. To change the number of elevator, change `val n = [number of elevator here]` in the `MainVerticle.kt` 
+The server should start and we can use this [dashboard](https://elevator-dashboard.netlify.com/#/) to try the simulation. To change the number of elevators, change `val n = [number of elevators here]` in the `MainVerticle.kt` 
 (101 floors)
 ### Bugs?
-**Likely**. I would be very appreciate if you point out my errors.
+**Likely**. I would be very appreciated if you point out my errors.
 
 
 
