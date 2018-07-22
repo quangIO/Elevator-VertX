@@ -1,0 +1,81 @@
+import org.gradle.plugins.ide.eclipse.model.SourceFolder
+
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+
+    dependencies {
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.2.51'
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.4'
+        classpath "gradle.plugin.io.vertx:vertx-gradle-plugin:0.1.0"
+    }
+}
+
+apply plugin: 'kotlin'
+apply plugin: 'java'
+apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'io.vertx.vertx-plugin'
+apply plugin: 'kotlin-kapt'
+
+repositories {
+    mavenCentral()
+}
+
+version = '0.0.1-SNAPSHOT'
+group = 'quang.ele'
+sourceCompatibility = '1.8'
+mainClassName = 'io.vertx.core.Launcher'
+def vertx_version = '3.5.3'
+
+dependencies {
+    // TODO use compileOnly instead compile for codegen
+    compile "io.vertx:vertx-web:$vertx_version"
+    compile "io.vertx:vertx-core:$vertx_version"
+    compile 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.2.51'
+    compile "io.vertx:vertx-lang-kotlin:$vertx_version"
+    compile("io.vertx:vertx-lang-kotlin-coroutines:$vertx_version") {
+        exclude group: 'org.jetbrains.kotlin'
+    }
+
+    compile('io.requery:requery:1.5.1')
+    compile('io.requery:requery-kotlin:1.5.1')
+    kapt 'io.requery:requery-processor:1.5.1'
+
+    compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.+"
+
+    compile 'com.google.flogger:flogger:0.2'
+    runtimeOnly 'com.google.flogger:flogger-system-backend:0.2'
+}
+
+vertx {
+    mainVerticle = 'quang.ele.elevator.MainVerticle'
+}
+
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+shadowJar {
+    classifier = 'fat'
+    manifest {
+        attributes 'Main-Verticle': 'quang.ele.elevator.MainVerticle'
+    }
+    mergeServiceFiles {
+        include 'META-INF/services/io.vertx.core.spi.VerticleFactory'
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.9'
+}
+
+kotlin {
+    experimental {
+        coroutines "enable"
+    }
+}
