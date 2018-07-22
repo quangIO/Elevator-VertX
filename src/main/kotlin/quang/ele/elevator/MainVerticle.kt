@@ -84,7 +84,7 @@ class MainVerticle : CoroutineVerticle() {
     }
 
     override suspend fun start() {
-        val n = 2
+        val n = 16
         val router = Router.router(vertx)
         for (i in 0 until n) {
             elevatorStatuses.add(ElevatorStatus(i))
@@ -119,11 +119,6 @@ class MainVerticle : CoroutineVerticle() {
 
                 moveElevatorToFloor(r.elevatorId, r.toFloor)
 
-                elevatorStatuses[r.elevatorId].run {
-                    if ((toFloor - atFloor) * (r.toFloor - atFloor) < 0) {
-                        requestQueue.add(r.toFloor)
-                    }
-                }
                 context.response().endWithJson(insideRequests)
             }
             get("/status").handler { context ->
