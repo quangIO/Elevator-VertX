@@ -1,4 +1,4 @@
-This is a attempt to make a more modern and efficient design of elevator system compare to my old https://github.com/quangIO/Elevator. The older one uses multi-threaded, inefficient, "eager" approach. An event loop keep tracking the request queue to see if there exists some requests need to dispatch to elevators. (Lock based, CPU hungry, and waste of electricity)
+This is a attempt to make a more modern and efficient design of elevator system compare to my old https://github.com/quangIO/Elevator. The older one uses multi-threaded, inefficient, "eager" approach. An event loop keep tracking the request queue to see if there exists some requests need to be sent to elevators. (Lock based, CPU hungry, and waste of electricity)
 
 ### How does this work?
 
@@ -24,7 +24,7 @@ All those data should be thread-safe. For the simplicity, I use built-in concurr
 
 ###### It is **event-based**
 
-* When it received an outside request: if it is moving up, it will try to reach the highest floor, and the same goes for moving down. The cost to select the elevator is calculated as `abs(toFloor - request.atFloor)` where `toFloor` is where the elevator is heading and `request.atFloor` is where the request comes from. In case, we cannot find an elevator to process a request, we add it to `requestQueue` 
+* When it received an outside request: if it is moving up, it will try to reach the highest floor, and the same goes for moving down. The cost to select the elevator is calculated as `abs(toFloor - request.atFloor)` where `toFloor` is where the elevator is heading and `request.atFloor` is where the request comes from. In case we cannot find an elevator to process a request, we add it to `requestQueue` 
 * When it received an inside request: similar to outside request but with specific elevator ID, so it is a lot simpler.
 * When elevators' states changed
     * If should pick up: `pickup`
